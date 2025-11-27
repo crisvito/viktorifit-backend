@@ -33,6 +33,8 @@ public class UserEntity {
 
   private String fullname;
   
+  // @Column(unique=true)
+  // private String username;
   @Column(unique=true)
   private String email;
 
