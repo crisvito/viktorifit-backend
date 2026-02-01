@@ -48,15 +48,18 @@ public class UserEntity {
   private LocalDateTime createdAt;
   @UpdateTimestamp
   private LocalDateTime updatedAt;
+
+  private LocalDateTime deletedAt;
   
   private Boolean isActive;
   private String activationToken;  
+  
+  private Boolean isDeleted;
 
   @PrePersist
   public void prePersist() {
-    if(isActive == null) {
-      isActive = false;
-    }
+    if(isActive == null) isActive = false;
+    if (isDeleted == null) isDeleted = false;
   }
 
 }

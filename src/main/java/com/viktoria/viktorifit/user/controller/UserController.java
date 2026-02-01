@@ -1,20 +1,22 @@
 package com.viktoria.viktorifit.user.controller;
 
+import java.util.Map;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.viktoria.viktorifit.user.dto.UserAuthDTO;
 import com.viktoria.viktorifit.user.dto.UserDTO;
 import com.viktoria.viktorifit.user.service.UserService;
-import com.viktoria.viktorifit.user.dto.UserAuthDTO;
 
 import lombok.RequiredArgsConstructor;
-
-import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
@@ -45,6 +47,13 @@ public class UserController {
           "message", "Account is not active, Please activate your account first." 
         ));
       }
+
+      if(userService.isAccountDeleted(authDTO.getEmail())) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of(
+          "message", "Account has been deleted. Please contact support." 
+        ));
+      }
+
       Map<String, Object> response = userService.authenticateAndGenerateToken(authDTO);
       return ResponseEntity.ok(response);
 
@@ -53,5 +62,12 @@ public class UserController {
         "message", e.getMessage()
       ));
     }
+  }
+
+  @DeleteMapping("/users/me")
+  public ResponseEntity<String> deleteMyAccount(Authentication authentication) {
+      String email = authentication.getName();
+      userService.softDeleteUser(email);
+      return ResponseEntity.ok("Account deleted successfully");
   }
 }

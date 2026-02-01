@@ -8,6 +8,8 @@ import com.viktoria.viktorifit.user.entity.UserEntity;
 
 public interface UserRepository extends JpaRepository<UserEntity, Long>{
 
+  // Optional<UserEntity> findByUsername(String username);
   Optional<UserEntity> findByEmail(String email);
   Optional<UserEntity> findByActivationToken(String activaToken);
+  Optional<UserEntity> findByEmailAndIsDeletedFalse(String email);
 }

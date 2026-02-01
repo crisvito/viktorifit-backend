@@ -1,5 +1,6 @@
 package com.viktoria.viktorifit.user.service;
 
+import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.UUID;
 
@@ -17,9 +18,10 @@ import com.viktoria.viktorifit.user.dto.UserDTO;
 import com.viktoria.viktorifit.user.entity.UserEntity;
 import com.viktoria.viktorifit.user.entity.UserProfileEntity;
 import com.viktoria.viktorifit.user.repository.UserRepository;
-import com.viktoria.viktorifit.utility.email.service.EmailService;
 import com.viktoria.viktorifit.utility.JwtUtil;
+import com.viktoria.viktorifit.utility.email.service.EmailService;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -88,6 +90,14 @@ public class UserService {
             .orElse(false);
   }
 
+  public boolean isAccountDeleted(String email) {
+    // Cari user berdasarkan email, kalau ketemu ambil nilai isDeleted-nya
+    // Kalau user tidak ketemu, anggap saja false (tidak terhapus)
+    return userRepository.findByEmail(email)
+            .map(UserEntity::getIsDeleted)
+            .orElse(false);
+}
+
   public UserEntity getCurrentUser() {
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
     String email = authentication.getName();
@@ -127,4 +137,17 @@ public class UserService {
       throw new RuntimeException("Invalid Email or Password");
     }
   }
+
+  @Transactional
+  public void softDeleteUser(String email) {
+      UserEntity user = userRepository.findByEmailAndIsDeletedFalse(email)
+              .orElseThrow(() -> new RuntimeException("User not found or already deleted"));
+
+      user.setIsDeleted(true);
+      user.setDeletedAt(LocalDateTime.now());
+      
+      user.setEmail("deleted_" + System.currentTimeMillis() + "_" + user.getEmail());
+      userRepository.save(user);
+  }
+
 }   
