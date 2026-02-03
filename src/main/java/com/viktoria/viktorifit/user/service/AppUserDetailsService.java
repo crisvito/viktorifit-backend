@@ -1,7 +1,4 @@
 package com.viktoria.viktorifit.user.service;
-
-import java.util.Collections;
-
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -17,15 +14,22 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class AppUserDetailsService implements UserDetailsService{
     private final UserRepository userRepository;
-    @Override
-    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-      UserEntity userExisting = userRepository.findByEmail(email)
-        .orElseThrow(() -> new UsernameNotFoundException("User not found with" + email + " not found"));
 
+    @Override
+    public UserDetails loadUserByUsername(String input) throws UsernameNotFoundException {
+      UserEntity user;
+      
+      if (input.contains("@")) {
+        user = userRepository.findByEmail(input)
+              .orElseThrow(() -> new UsernameNotFoundException("Email not found: " + input));
+      } else {
+        user = userRepository.findByUsername(input)
+                .orElseThrow(() -> new UsernameNotFoundException("Username not found: " + input));
+      }
       return User.builder()
-              .username(userExisting.getEmail())
-              .password(userExisting.getPassword())
-              .authorities(Collections.emptyList())
+              .username(user.getEmail())
+              .password(user.getPassword())
+              .authorities(user.getRole().name())
               .build(); 
     }
 }

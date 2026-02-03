@@ -5,9 +5,13 @@ import java.time.LocalDateTime;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import com.viktoria.viktorifit.user.enums.RoleEnum;
+
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
-import jakarta.persistence.Entity;  
+import jakarta.persistence.Entity;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.EnumType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -32,11 +36,12 @@ public class UserEntity {
   private Long id;
 
   private String fullname;
-  
-  // @Column(unique=true)
-  // private String username;
-  @Column(unique=true)
+
+  @Column(nullable=false, unique=true)
   private String email;
+
+  @Column(nullable = false, unique = true)
+  private String username;
 
   private String password;
   
@@ -56,6 +61,9 @@ public class UserEntity {
   
   private Boolean isDeleted;
 
+  @Enumerated(EnumType.STRING)
+  private RoleEnum role;
+  
   @PrePersist
   public void prePersist() {
     if(isActive == null) isActive = false;

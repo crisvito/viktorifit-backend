@@ -17,6 +17,7 @@ import com.viktoria.viktorifit.user.dto.UserAuthDTO;
 import com.viktoria.viktorifit.user.dto.UserDTO;
 import com.viktoria.viktorifit.user.entity.UserEntity;
 import com.viktoria.viktorifit.user.entity.UserProfileEntity;
+import com.viktoria.viktorifit.user.enums.RoleEnum;
 import com.viktoria.viktorifit.user.repository.UserRepository;
 import com.viktoria.viktorifit.utility.JwtUtil;
 import com.viktoria.viktorifit.utility.email.service.EmailService;
@@ -38,6 +39,7 @@ public class UserService {
     return UserEntity.builder()
         .id(userDTO.getId())
         .fullname(userDTO.getFullname())
+        .username(userDTO.getUsername())
         .email(userDTO.getEmail())
         .password(passwordEncoder.encode(userDTO.getPassword()))
         .createdAt(userDTO.getCreatedAt())
@@ -49,6 +51,7 @@ public class UserService {
     return UserDTO.builder()
         .id(userEntity.getId())
         .fullname(userEntity.getFullname())
+        .username(userEntity.getUsername())
         .email(userEntity.getEmail())
         .userProfileDTO(userProfileService.toDTO(userEntity.getUserProfile()))
         .createdAt(userEntity.getCreatedAt())
@@ -57,7 +60,15 @@ public class UserService {
   }
 
   public UserDTO registerProfile(UserDTO profileDTO) {
+    if (userRepository.existsByEmail(profileDTO.getEmail())) {
+        throw new RuntimeException("Email already registered");
+    }
+    if (userRepository.existsByUsername(profileDTO.getUsername())) {
+        throw new RuntimeException("Username already taken");
+    }
+
     UserEntity newUser = toEntity(profileDTO);
+    newUser.setRole(RoleEnum.USER);
     newUser.setActivationToken(UUID.randomUUID().toString());
     newUser = userRepository.save(newUser);
     
@@ -121,15 +132,35 @@ public class UserService {
   }
 
   public Map<String, Object> authenticateAndGenerateToken(UserAuthDTO authDTO){
+
+    String loginInput = (authDTO.getUsername() != null) ? 
+    authDTO.getUsername() : authDTO.getEmail();
+    
+    UserEntity user;
+    if (loginInput.contains("@")) {
+      user = userRepository.findByEmail(loginInput)
+            .orElseThrow(() -> new RuntimeException("User not found"));
+    }else {
+      user = userRepository.findByUsername(loginInput)
+          .orElseThrow(() -> new RuntimeException("User not found"));
+    }
+
+    if (!user.getIsActive()) {
+        throw new RuntimeException("Account is not activated yet.");
+    }
+    if (Boolean.TRUE.equals(user.getIsDeleted())) { 
+        throw new RuntimeException("Account has been deleted.");
+    }
+
     try {
       authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken( 
-                      authDTO.getEmail(), authDTO.getPassword()
+                      loginInput, authDTO.getPassword()
                     ));
       String token = jwtUtil.generateToken(authDTO.getEmail());
       return Map.of(
         "token", token,
-        "user", getPublicUser(authDTO.getEmail())
+        "user", getPublicUser(user.getEmail())
       );
     }catch (AuthenticationException e) {
       throw new RuntimeException("Invalid Email or Password");
