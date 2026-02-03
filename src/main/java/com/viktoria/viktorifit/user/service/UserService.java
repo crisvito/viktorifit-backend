@@ -34,19 +34,6 @@ public class UserService {
   private final AuthenticationManager authenticationManager;
   private final JwtUtil jwtUtil;
 
-  public UserDTO registerProfile(UserDTO profileDTO) {
-    UserEntity newUser = toEntity(profileDTO);
-    newUser.setActivationToken(UUID.randomUUID().toString());
-    newUser = userRepository.save(newUser);
-    
-    // Send Activation email
-    String activationLink = "http://localhost:8080/api/v1.0/activate?token=" + newUser.getActivationToken();
-    String subject = "Activate your Viktorifit account";
-    String body = "Click on the following link to activate your account: " + activationLink;
-    emailService.sendEmail(newUser.getEmail(), subject, body);
-    return toDTO(newUser);
-  }
-
   public UserEntity toEntity(UserDTO userDTO) {
     return UserEntity.builder()
         .id(userDTO.getId())
@@ -67,6 +54,19 @@ public class UserService {
         .createdAt(userEntity.getCreatedAt())
         .updatedAt(userEntity.getUpdatedAt())
         .build();
+  }
+
+  public UserDTO registerProfile(UserDTO profileDTO) {
+    UserEntity newUser = toEntity(profileDTO);
+    newUser.setActivationToken(UUID.randomUUID().toString());
+    newUser = userRepository.save(newUser);
+    
+    // Send Activation email
+    String activationLink = "http://localhost:8080/api/v1.0/activate?token=" + newUser.getActivationToken();
+    String subject = "Activate your Viktorifit account";
+    String body = "Click on the following link to activate your account: " + activationLink;
+    emailService.sendEmail(newUser.getEmail(), subject, body);
+    return toDTO(newUser);
   }
 
   public boolean activateProfile(String activationToken) {
@@ -91,8 +91,6 @@ public class UserService {
   }
 
   public boolean isAccountDeleted(String email) {
-    // Cari user berdasarkan email, kalau ketemu ambil nilai isDeleted-nya
-    // Kalau user tidak ketemu, anggap saja false (tidak terhapus)
     return userRepository.findByEmail(email)
             .map(UserEntity::getIsDeleted)
             .orElse(false);
