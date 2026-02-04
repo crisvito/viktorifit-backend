@@ -37,21 +37,30 @@ public class JwtRequestFilter extends OncePerRequestFilter{
       String email = null;
       String jwt = null;
       
-      if(authHeader != null && authHeader.startsWith("Bearer")){
+      if(authHeader != null && authHeader.startsWith("Bearer ")){
         jwt = authHeader.substring(7);
-        email = jwtUtil.extractEmail(jwt);
+
+        try {
+          email = jwtUtil.extractEmail(jwt);
+        } catch (Exception e) {
+            // Token error diabaikan, lanjut tanpa login
+        }
       }
 
       if(email != null && SecurityContextHolder.getContext().getAuthentication() == null){
-        UserDetails userDetails = this.userDetailsService.loadUserByUsername(email);
-        
-        if(jwtUtil.isTokenValid(jwt, userDetails)){
-          UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-            userDetails, null, userDetails.getAuthorities()
-          );
-          authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-          SecurityContextHolder.getContext().setAuthentication(authToken);
-        } 
+        try {
+          UserDetails userDetails = this.userDetailsService.loadUserByUsername(email);
+          
+          if(jwtUtil.isTokenValid(jwt, userDetails)){
+              UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                  userDetails, null, userDetails.getAuthorities()
+              );
+              authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+              SecurityContextHolder.getContext().setAuthentication(authToken);
+          }
+      } catch (Exception e) {
+          // Gagal validasi user, abaikan dan lanjut sebagai Anonymous
+      }
       }
       filterChain.doFilter(request, response);
   }

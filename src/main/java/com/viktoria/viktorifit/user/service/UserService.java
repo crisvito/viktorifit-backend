@@ -53,32 +53,34 @@ public class UserService {
         .fullname(userEntity.getFullname())
         .username(userEntity.getUsername())
         .email(userEntity.getEmail())
-        .userProfileDTO(userProfileService.toDTO(userEntity.getUserProfile()))
+        .userProfileDTO(userEntity.getUserProfile() != null 
+                ? userProfileService.toDTO(userEntity.getUserProfile()) 
+                : null)
         .createdAt(userEntity.getCreatedAt())
         .updatedAt(userEntity.getUpdatedAt())
         .build();
   }
 
-  public UserDTO registerProfile(UserDTO profileDTO) {
-    if (userRepository.existsByEmail(profileDTO.getEmail())) {
+  public UserDTO registerProfile(UserDTO userDTO) {
+
+    if (userRepository.existsByEmail(userDTO.getEmail())) {
         throw new RuntimeException("Email already registered");
     }
-    if (userRepository.existsByUsername(profileDTO.getUsername())) {
+    if (userRepository.existsByUsername(userDTO.getUsername())) {
         throw new RuntimeException("Username already taken");
     }
 
-    UserEntity newUser = toEntity(profileDTO);
+    UserEntity newUser = toEntity(userDTO);
     newUser.setRole(RoleEnum.USER);
     newUser.setActivationToken(UUID.randomUUID().toString());
     newUser = userRepository.save(newUser);
     
-    // Send Activation email
-    String activationLink = "http://localhost:8080/api/v1.0/activate?token=" + newUser.getActivationToken();
+    String activationLink = "http://localhost:8080/api/v1.0/auth/activate?token=" + newUser.getActivationToken();
     String subject = "Activate your Viktorifit account";
     String body = "Click on the following link to activate your account: " + activationLink;
     emailService.sendEmail(newUser.getEmail(), subject, body);
     return toDTO(newUser);
-  }
+}
 
   public boolean activateProfile(String activationToken) {
     return userRepository.findByActivationToken(activationToken) 
@@ -125,6 +127,7 @@ public class UserService {
     return UserDTO.builder()
               .id(currentUser.getId())
               .fullname(currentUser.getFullname())
+              .username(currentUser.getUsername())
               .email(currentUser.getEmail())
               .createdAt(currentUser.getCreatedAt())
               .updatedAt(currentUser.getUpdatedAt())
@@ -157,7 +160,7 @@ public class UserService {
                 new UsernamePasswordAuthenticationToken( 
                       loginInput, authDTO.getPassword()
                     ));
-      String token = jwtUtil.generateToken(authDTO.getEmail());
+      String token = jwtUtil.generateToken(user.getEmail());
       return Map.of(
         "token", token,
         "user", getPublicUser(user.getEmail())

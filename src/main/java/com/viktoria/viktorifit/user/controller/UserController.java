@@ -1,5 +1,6 @@
 package com.viktoria.viktorifit.user.controller;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.http.HttpStatus;
@@ -27,9 +28,15 @@ public class UserController {
   private final UserService userService;
 
   @PostMapping("/register")
-  public ResponseEntity<UserDTO> registerProfile(@RequestBody UserDTO userDTO) {
-    UserDTO registeredProfile = userService.registerProfile(userDTO);
-    return ResponseEntity.status(HttpStatus.CREATED).body(registeredProfile);
+  public ResponseEntity<?> registerProfile(@RequestBody UserDTO userDTO) {
+      try {
+          UserDTO registered = userService.registerProfile(userDTO);
+          return ResponseEntity.ok(registered);
+      } catch (Exception e) {
+          Map<String, Object> response = new HashMap<>();
+          response.put("message", e.getMessage());
+          return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+      }
   }
 
   @GetMapping("/activate")
@@ -45,18 +52,6 @@ public class UserController {
   @PostMapping("/login")
   public ResponseEntity<Map<String, Object>> login(@RequestBody UserAuthDTO authDTO){
     try{
-      if(!userService.isAccountActive(authDTO.getEmail())){
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of(
-          "message", "Account is not active, Please activate your account first." 
-        ));
-      }
-
-      if(userService.isAccountDeleted(authDTO.getEmail())) {
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of(
-          "message", "Account has been deleted. Please contact support." 
-        ));
-      }
-
       Map<String, Object> response = userService.authenticateAndGenerateToken(authDTO);
       return ResponseEntity.ok(response);
 

@@ -1,19 +1,19 @@
 package com.viktoria.viktorifit.ml.controller;
 
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import lombok.RequiredArgsConstructor;
-
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import com.viktoria.viktorifit.ml.dto.MlRequestDTO;
 import com.viktoria.viktorifit.ml.dto.MlResponseDTO;
 import com.viktoria.viktorifit.ml.service.MlService;
 
+import lombok.RequiredArgsConstructor;
+
 
 @RestController
-@RequestMapping("/api/ml")
+@RequestMapping("/ml")
 @RequiredArgsConstructor
 public class MlController {
 
