@@ -21,6 +21,7 @@ public class UserDTO {
   private String email;
   @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
   private String password;
+  private String role;
   private UserProfileDTO userProfileDTO;
   private LocalDateTime createdAt;
   private LocalDateTime updatedAt;

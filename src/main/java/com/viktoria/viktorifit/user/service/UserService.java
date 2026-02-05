@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.UUID;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -35,6 +36,9 @@ public class UserService {
   private final AuthenticationManager authenticationManager;
   private final JwtUtil jwtUtil;
 
+  @Value("${app.base.url}")
+  private String baseUrl;
+
   public UserEntity toEntity(UserDTO userDTO) {
     return UserEntity.builder()
         .id(userDTO.getId())
@@ -56,6 +60,7 @@ public class UserService {
         .userProfileDTO(userEntity.getUserProfile() != null 
                 ? userProfileService.toDTO(userEntity.getUserProfile()) 
                 : null)
+        .role(userEntity.getRole().name())
         .createdAt(userEntity.getCreatedAt())
         .updatedAt(userEntity.getUpdatedAt())
         .build();
@@ -75,7 +80,7 @@ public class UserService {
     newUser.setActivationToken(UUID.randomUUID().toString());
     newUser = userRepository.save(newUser);
     
-    String activationLink = "http://localhost:8080/api/v1.0/auth/activate?token=" + newUser.getActivationToken();
+    String activationLink = baseUrl + "auth/activate?token=" + newUser.getActivationToken();
     String subject = "Activate your Viktorifit account";
     String body = "Click on the following link to activate your account: " + activationLink;
     emailService.sendEmail(newUser.getEmail(), subject, body);
@@ -129,6 +134,7 @@ public class UserService {
               .fullname(currentUser.getFullname())
               .username(currentUser.getUsername())
               .email(currentUser.getEmail())
+              .role(currentUser.getRole().name())
               .createdAt(currentUser.getCreatedAt())
               .updatedAt(currentUser.getUpdatedAt())
               .build();
