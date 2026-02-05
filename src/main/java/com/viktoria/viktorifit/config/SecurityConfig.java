@@ -43,7 +43,7 @@ public class SecurityConfig {
                 "/auth/**", 
                 "/status", 
                 "/health",
-                "/inquiries/create",
+                "/inquiry/create",
                 "/faqs/list"
             )
             .permitAll().anyRequest().authenticated())

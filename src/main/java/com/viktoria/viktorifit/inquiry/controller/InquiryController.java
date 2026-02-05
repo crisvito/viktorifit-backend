@@ -21,7 +21,7 @@ import com.viktoria.viktorifit.inquiry.service.InquiryService;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/inquiries")
+@RequestMapping("/inquiry")
 @RequiredArgsConstructor
 public class InquiryController {
     private final InquiryService inquiryService;
