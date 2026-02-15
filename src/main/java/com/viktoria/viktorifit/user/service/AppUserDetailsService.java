@@ -20,10 +20,10 @@ public class AppUserDetailsService implements UserDetailsService{
       UserEntity user;
       
       if (input.contains("@")) {
-        user = userRepository.findByEmail(input)
+        user = userRepository.findByEmailAndIsDeletedFalse(input)
               .orElseThrow(() -> new UsernameNotFoundException("Email not found: " + input));
       } else {
-        user = userRepository.findByUsername(input)
+        user = userRepository.findByUsernameAndIsDeletedFalse(input)
                 .orElseThrow(() -> new UsernameNotFoundException("Username not found: " + input));
       }
       return User.builder()

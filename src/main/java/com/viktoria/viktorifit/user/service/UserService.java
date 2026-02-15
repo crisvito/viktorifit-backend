@@ -66,21 +66,40 @@ public class UserService {
         .build();
   }
 
+  @Transactional
+  public void cleanupExpiredInactiveUsers() {
+
+      var expiredUsers = userRepository
+          .findByIsActiveFalseAndActivationExpiredAtBeforeAndIsDeletedFalse(
+              LocalDateTime.now()
+          );
+
+      for (UserEntity user : expiredUsers) {
+          user.setIsDeleted(true);
+          user.setDeletedAt(LocalDateTime.now());
+          user.setEmail("deleted_" + user.getId() + "_" + user.getEmail());
+
+          userRepository.save(user);
+      }
+  }
+
   public UserDTO registerProfile(UserDTO userDTO) {
 
-    if (userRepository.existsByEmail(userDTO.getEmail())) {
+    if (userRepository.existsByEmailAndIsDeletedFalse(userDTO.getEmail())) {
         throw new RuntimeException("Email already registered");
     }
-    if (userRepository.existsByUsername(userDTO.getUsername())) {
+    if (userRepository.existsByUsernameAndIsDeletedFalse(userDTO.getUsername())) {
         throw new RuntimeException("Username already taken");
     }
 
     UserEntity newUser = toEntity(userDTO);
     newUser.setRole(RoleEnum.USER);
     newUser.setActivationToken(UUID.randomUUID().toString());
+    newUser.setActivationExpiredAt(LocalDateTime.now().plusHours(1));
+    newUser.setIsActive(false);
     newUser = userRepository.save(newUser);
     
-    String activationLink = baseUrl + "auth/activate?token=" + newUser.getActivationToken();
+    String activationLink = baseUrl + "/auth/activate?token=" + newUser.getActivationToken();
     String subject = "Activate your Viktorifit account";
     String body = "Click on the following link to activate your account: " + activationLink;
     emailService.sendEmail(newUser.getEmail(), subject, body);
@@ -90,7 +109,14 @@ public class UserService {
   public boolean activateProfile(String activationToken) {
     return userRepository.findByActivationToken(activationToken) 
         .map(user -> {
+          if (user.getActivationExpiredAt().isBefore(LocalDateTime.now())) {
+                throw new RuntimeException("ACTIVATION_TOKEN_EXPIRED");
+          }
+
           user.setIsActive(true);
+          user.setActivationToken(null);
+          user.setActivationExpiredAt(null);
+
           UserProfileEntity newProfile = UserProfileEntity.builder()
             .id(user.getId()) 
             .user(user)         
@@ -103,13 +129,13 @@ public class UserService {
   }
 
   public boolean isAccountActive(String email) {
-    return userRepository.findByEmail(email)
+    return userRepository.findByEmailAndIsDeletedFalse(email)
             .map(UserEntity::getIsActive)
             .orElse(false);
   }
 
   public boolean isAccountDeleted(String email) {
-    return userRepository.findByEmail(email)
+    return userRepository.findByEmailAndIsDeletedFalse(email)
             .map(UserEntity::getIsDeleted)
             .orElse(false);
 }
@@ -117,7 +143,7 @@ public class UserService {
   public UserEntity getCurrentUser() {
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
     String email = authentication.getName();
-    return userRepository.findByEmail(email)
+    return userRepository.findByEmailAndIsDeletedFalse(email)
                   .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
   }
 
@@ -126,7 +152,7 @@ public class UserService {
     if(email == null){
       currentUser = getCurrentUser();
     } else{
-      currentUser = userRepository.findByEmail(email)
+      currentUser = userRepository.findByEmailAndIsDeletedFalse(email)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with email : " + email));
     }
     return UserDTO.builder()
@@ -147,10 +173,10 @@ public class UserService {
     
     UserEntity user;
     if (loginInput.contains("@")) {
-      user = userRepository.findByEmail(loginInput)
+      user = userRepository.findByEmailAndIsDeletedFalse(loginInput)
             .orElseThrow(() -> new RuntimeException("User not found"));
     }else {
-      user = userRepository.findByUsername(loginInput)
+      user = userRepository.findByUsernameAndIsDeletedFalse(loginInput)
           .orElseThrow(() -> new RuntimeException("User not found"));
     }
 
@@ -178,7 +204,7 @@ public class UserService {
 
   @Transactional
   public void softDeleteUser(String email) {
-      UserEntity user = userRepository.findByEmailAndIsDeletedFalse(email)
+      UserEntity user = userRepository.findByEmailAndIsActiveFalseAndIsDeletedFalse(email)
               .orElseThrow(() -> new RuntimeException("User not found or already deleted"));
 
       user.setIsDeleted(true);

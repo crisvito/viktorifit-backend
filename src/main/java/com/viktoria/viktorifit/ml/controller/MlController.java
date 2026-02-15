@@ -1,15 +1,11 @@
 package com.viktoria.viktorifit.ml.controller;
 
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
-import com.viktoria.viktorifit.ml.dto.MlRequestDTO;
-import com.viktoria.viktorifit.ml.dto.MlResponseDTO;
+import com.viktoria.viktorifit.ml.dto.request.*;
 import com.viktoria.viktorifit.ml.service.MlService;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
 
 @RestController
@@ -17,11 +13,20 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class MlController {
 
-  private final MlService mlServce;
-
-  @PostMapping("/predict")
-  public MlResponseDTO predict(@RequestBody MlRequestDTO request) {      
-      return mlServce.predict(request);
-  }
+  private final MlService mlService;
   
+  @PostMapping("/userprogress-recommendation")
+  public ResponseEntity<?> getUserProgress(@RequestBody UserProgressRequestDTO request){
+    return mlService.getUserProgress(request);
+  } 
+
+  @PostMapping("/workout-recommendation")
+  public ResponseEntity<?> workout(@RequestBody UserWorkoutRequestDTO request) {
+    return mlService.getWorkout(request);
+  }
+
+  @PostMapping("/meal-recommendation")
+  public ResponseEntity<?> meal(@RequestBody UserMealRequestDTO request) {
+    return mlService.getMeal(request);
+  }
 }

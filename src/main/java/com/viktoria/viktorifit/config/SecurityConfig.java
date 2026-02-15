@@ -44,7 +44,9 @@ public class SecurityConfig {
                 "/status", 
                 "/health",
                 "/inquiry/create",
-                "/faqs/list"
+                "/faqs/list",
+                "/ml/userprogress-recommendation",
+                "/ml/**"
             )
             .permitAll().anyRequest().authenticated())
         .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

@@ -2,13 +2,15 @@ package com.viktoria.viktorifit.utility.seed;
 
 import java.time.LocalDateTime;
 
-import com.viktoria.viktorifit.user.entity.UserEntity;
-import com.viktoria.viktorifit.user.enums.RoleEnum;
-import com.viktoria.viktorifit.user.repository.UserRepository;
-import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
+
+import com.viktoria.viktorifit.user.entity.UserEntity;
+import com.viktoria.viktorifit.user.enums.RoleEnum;
+import com.viktoria.viktorifit.user.repository.UserRepository;
+
+import lombok.RequiredArgsConstructor;
 
 @Component
 @RequiredArgsConstructor
@@ -21,7 +23,7 @@ public class DataSeeder implements CommandLineRunner {
         String adminEmail = "admin@viktorifit.com";
         String adminUsername = "Admin";
         
-        if (userRepository.findByEmail(adminEmail).isEmpty()) {
+        if (userRepository.findByEmailAndIsDeletedFalse(adminEmail).isEmpty()) {
             UserEntity admin = new UserEntity();
             admin.setEmail(adminEmail);
             admin.setFullname("Admin boss");
