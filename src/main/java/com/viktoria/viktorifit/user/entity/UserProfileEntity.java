@@ -1,5 +1,6 @@
 package com.viktoria.viktorifit.user.entity;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import org.hibernate.annotations.CreationTimestamp;
@@ -28,13 +29,31 @@ public class UserProfileEntity {
   @Column(name = "user_id")
   private Long id;
 
+  private LocalDate dob;
   private Integer age;
   private String gender;
-  private Integer height;
-  private Integer weight;
-  private Integer BMI;
-  private Boolean diabetes;
-  private Boolean hypertention;
+  private Double height;
+  private Double weight;
+  private Double BMI;
+
+
+  private Integer bodyFatCategory;
+  private Double bodyFatPercentage; 
+
+  private String goal;
+  private String level;
+
+  private Integer frequency;
+  private Double duration;
+
+  @Column(name = "workout_days")
+  private String workoutDays;
+
+  private Integer badminTon;
+  private Integer football;
+  private Integer basketball;
+  private Integer volleyball;
+  private Integer swim;
 
   @OneToOne
   @JoinColumn(name = "user_id", nullable=false, unique=true)

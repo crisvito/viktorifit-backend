@@ -20,7 +20,7 @@ public class ExerciseController {
 
   private final ExerciseService exerciseService;
 
-  @GetMapping("/exercises")
+  @GetMapping
   public ResponseEntity<List<ExerciseDTO>> getAll() {
     List<ExerciseDTO> exercises = exerciseService.getAllExercises();
     return ResponseEntity.ok(exercises);

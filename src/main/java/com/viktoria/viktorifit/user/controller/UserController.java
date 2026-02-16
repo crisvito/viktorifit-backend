@@ -1,5 +1,6 @@
 package com.viktoria.viktorifit.user.controller;
 
+import java.security.Principal;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -10,11 +11,13 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.viktoria.viktorifit.user.dto.ChangePasswordDTO;
 import com.viktoria.viktorifit.user.dto.UserAuthDTO;
 import com.viktoria.viktorifit.user.dto.UserDTO;
 import com.viktoria.viktorifit.user.service.UserService;
@@ -68,5 +71,22 @@ public class UserController {
       String email = authentication.getName();
       userService.softDeleteUser(email);
       return ResponseEntity.ok("Account deleted successfully");
+  }
+
+  @PreAuthorize("hasAuthority('USER')")
+  @PutMapping("/update-account")
+  public ResponseEntity<UserDTO> updateAccount(@RequestBody UserDTO userDTO) {
+      return ResponseEntity.ok(userService.updateAccount(userDTO));
+  }
+
+  @PutMapping("/change-password")
+  public ResponseEntity<?> changePassword(
+          @RequestBody ChangePasswordDTO request,
+          Principal principal // Otomatis dapet email dari Token JWT
+  ) {
+      // Panggil service yang tadi kita buat
+      userService.changePassword(principal.getName(), request);
+      
+      return ResponseEntity.ok("Password berhasil diubah!");
   }
 }

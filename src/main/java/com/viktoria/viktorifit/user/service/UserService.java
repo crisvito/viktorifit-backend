@@ -5,6 +5,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -13,7 +14,9 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
+import com.viktoria.viktorifit.user.dto.ChangePasswordDTO;
 import com.viktoria.viktorifit.user.dto.UserAuthDTO;
 import com.viktoria.viktorifit.user.dto.UserDTO;
 import com.viktoria.viktorifit.user.entity.UserEntity;
@@ -155,15 +158,7 @@ public class UserService {
       currentUser = userRepository.findByEmailAndIsDeletedFalse(email)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with email : " + email));
     }
-    return UserDTO.builder()
-              .id(currentUser.getId())
-              .fullname(currentUser.getFullname())
-              .username(currentUser.getUsername())
-              .email(currentUser.getEmail())
-              .role(currentUser.getRole().name())
-              .createdAt(currentUser.getCreatedAt())
-              .updatedAt(currentUser.getUpdatedAt())
-              .build();
+    return toDTO(currentUser);
   }
 
   public Map<String, Object> authenticateAndGenerateToken(UserAuthDTO authDTO){
@@ -204,14 +199,60 @@ public class UserService {
 
   @Transactional
   public void softDeleteUser(String email) {
-      UserEntity user = userRepository.findByEmailAndIsActiveFalseAndIsDeletedFalse(email)
+      UserEntity user = userRepository.findByEmailAndIsDeletedFalse(email)
               .orElseThrow(() -> new RuntimeException("User not found or already deleted"));
 
       user.setIsDeleted(true);
       user.setDeletedAt(LocalDateTime.now());
       
       user.setEmail("deleted_" + System.currentTimeMillis() + "_" + user.getEmail());
+      user.setUsername("deleted_" + System.currentTimeMillis() + "_" + user.getUsername());
       userRepository.save(user);
   }
+
+  @Transactional
+  public UserDTO updateAccount(UserDTO userDTO) {
+    // 1. Ambil user yang sedang login saat ini (lebih aman)
+    UserEntity user = getCurrentUser();
+
+    // 2. Validasi Username: Cek apakah username baru sudah dipakai orang lain
+    if (!user.getUsername().equals(userDTO.getUsername())) {
+        if (userRepository.existsByUsernameAndIsDeletedFalse(userDTO.getUsername())) {
+            throw new RuntimeException("Username already taken");
+        }
+        user.setUsername(userDTO.getUsername());
+    }
+
+    // 3. Update Fullname
+    user.setFullname(userDTO.getFullname());
+    
+    // 4. Update Timestamp
+    user.setUpdatedAt(LocalDateTime.now());
+
+    // 5. Simpan dan kembalikan dalam bentuk DTO
+    UserEntity updatedUser = userRepository.save(user);
+    return toDTO(updatedUser);
+  }
+
+public void changePassword(String email, ChangePasswordDTO request) {
+    UserEntity user = userRepository.findByEmailAndIsDeletedFalse(email)
+            .orElseThrow(() -> new RuntimeException("User not found"));
+
+    // 1. CEK PASSWORD LAMA
+    if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPassword())) {
+        // GANTI INI: Jangan pakai BadCredentialsException
+        // PAKAI INI: Biar return 400 dan pesannya kebaca di Frontend
+        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Password lama salah!"); 
+    }
+
+    // 2. CEK KONFIRMASI
+    if (!request.getNewPassword().equals(request.getConfirmationPassword())) {
+        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Konfirmasi password tidak cocok!");
+    }
+
+    // 3. SIMPAN
+    user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+    userRepository.save(user);
+}
 
 }   
