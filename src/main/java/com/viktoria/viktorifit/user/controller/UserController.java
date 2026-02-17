@@ -36,8 +36,14 @@ public class UserController {
           UserDTO registered = userService.registerProfile(userDTO);
           return ResponseEntity.ok(registered);
       } catch (Exception e) {
+          e.printStackTrace(); 
+          System.out.println("ERROR REGISTER: " + e);
           Map<String, Object> response = new HashMap<>();
-          response.put("message", e.getMessage());
+          String message = e.getMessage();
+          if (message == null) {
+              message = "Terjadi kesalahan internal (Null Pointer). Cek Log Railway.";
+          }
+          response.put("message", message);
           return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
       }
   }
