@@ -39,7 +39,7 @@ public class UserService {
   private final AuthenticationManager authenticationManager;
   private final JwtUtil jwtUtil;
 
-  @Value("${app.frontend.url}")
+  @Value("${app.base.url}")
   private String baseUrl;
 
   public UserEntity toEntity(UserDTO userDTO) {
