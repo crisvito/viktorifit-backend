@@ -1,24 +1,23 @@
-{
-	"properties": [
-		{
-			"name": "app.jwt.secret",
-			"type": "java.lang.String",
-			"description": "A description for 'app.jwt.secret'"
-		},
-		{
-			"name": "app.jwt.expiration",
-			"type": "java.lang.String",
-			"description": "A description for 'app.jwt.expiration'"
-		},
-		{
-			"name": "ml.api.base-url",
-			"type": "java.lang.String",
-			"description": "A description for 'ml.api.base-url'"
-		},
-		{
-			"name": "app.base.url",
-			"type": "java.lang.String",
-			"description": "A description for 'app.base.url'"
-		}
-	]
-}
+
+{"properties": [
+  {
+    "name": "app.jwt.secret",
+    "type": "java.lang.String",
+    "description": "A description for 'app.jwt.secret'"
+  },
+  {
+    "name": "app.jwt.expiration",
+    "type": "java.lang.String",
+    "description": "A description for 'app.jwt.expiration'"
+  },
+  {
+    "name": "ml.api.base-url",
+    "type": "java.lang.String",
+    "description": "A description for 'ml.api.base-url'"
+  },
+  {
+    "name": "app.base.url",
+    "type": "java.lang.String",
+    "description": "A description for 'app.base.url'"
+  }
+]}
