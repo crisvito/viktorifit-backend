@@ -28,9 +28,6 @@ public class UserProgressDTO {
     public static class Physical {
         @JsonProperty("weight_kg")
         private double weightKg;
-
-        @JsonProperty("body_fat_percentage")
-        private double bodyFatPercentage;
     }
 
     @Data

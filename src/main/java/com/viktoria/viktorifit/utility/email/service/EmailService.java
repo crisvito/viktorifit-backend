@@ -1,6 +1,7 @@
 package com.viktoria.viktorifit.utility.email.service;
 import java.util.List;
 import java.util.Map;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;

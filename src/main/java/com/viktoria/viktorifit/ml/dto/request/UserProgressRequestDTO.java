@@ -34,9 +34,6 @@ public class UserProgressRequestDTO {
   @JsonProperty("Body_Fat_Category")
   private Integer bodyFatCategory;
 
-  @JsonProperty("Body_Fat_Percentage")
-  private Double bodyFatPercentage;
-
   @JsonProperty("Frequency")
   private Integer frequency;
 

@@ -21,9 +21,6 @@ public class UserMealRequestDTO {
   @JsonProperty("Target_Carbs_g")
   private Double targetCarbsG;
 
-  @JsonProperty("Target_Fat_g")
-  private Double targetFatG;
-
   @JsonProperty("Frequency")
   private Integer frequency;
 }
