@@ -1,3 +1,4 @@
+//Development
 package com.viktoria.viktorifit.utility.email.service;
 import java.util.List;
 import java.util.Map;
@@ -49,7 +50,7 @@ public class EmailService {
 }
 
 
-
+// Production
 // package com.viktoria.viktorifit.utility.email.service;
 
 // import org.springframework.beans.factory.annotation.Value;
